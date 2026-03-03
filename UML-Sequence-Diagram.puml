@@ -1,0 +1,82 @@
+
+
+@startuml
+hide footbox
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 120
+
+title Restaurant API - Sequence Diagram
+
+actor Client
+participant "Server\n(server.js)" as Server
+participant "RestaurantRoute\n(routes/restaurants.js)" as RestaurantRoute
+participant "ReservationRoute\n(routes/reservations.js)" as ReservationRoute
+participant "ReviewRoute\n(routes/reviews.js)" as ReviewRoute
+participant "AuthMiddleware\n(middleware/auth.js)" as AuthMiddleware
+participant "RestaurantController\n(controllers/restaurants.js)" as RestaurantController
+participant "ReservationController\n(controllers/reservations.js)" as ReservationController
+participant "ReviewController\n(controllers/reviews.js)" as ReviewController
+participant "Restaurant Model\n(models/Restaurant.js)" as RestaurantModel
+participant "Reservation Model\n(models/Reservation.js)" as ReservationModel
+participant "Review Model\n(models/Review.js)" as ReviewModel
+participant "User Model\n(models/User.js)" as UserModel
+participant "MongoDB" as DB
+
+== 1) Get restaurant list ==
+Client -> Server : GET /api/v1/restaurants
+Server -> RestaurantRoute : forward request
+RestaurantRoute -> RestaurantController : getRestaurants()
+RestaurantController -> RestaurantModel : find()
+RestaurantModel -> DB : query restaurants
+DB --> RestaurantModel : restaurant documents
+RestaurantModel --> RestaurantController : restaurant list
+RestaurantController --> RestaurantRoute : 200 OK + data
+RestaurantRoute --> Server : response
+Server --> Client : JSON restaurant list
+
+== 2) Create reservation for a restaurant ==
+Client -> Server : POST /api/v1/restaurants/{restaurantId}/reservations\nAuthorization: Bearer <token>
+Server -> ReservationRoute : forward request
+ReservationRoute -> AuthMiddleware : protect()
+AuthMiddleware -> UserModel : validate token / load user
+UserModel -> DB : find user
+DB --> UserModel : user document
+UserModel --> AuthMiddleware : authenticated user
+AuthMiddleware --> ReservationRoute : req.user attached
+ReservationRoute -> ReservationController : addReservation()
+ReservationController -> RestaurantModel : findById(restaurantId)
+RestaurantModel -> DB : query restaurant
+DB --> RestaurantModel : restaurant document
+RestaurantModel --> ReservationController : restaurant found
+ReservationController -> ReservationModel : create(reservationData)
+ReservationModel -> DB : insert reservation
+DB --> ReservationModel : reservation document
+ReservationModel --> ReservationController : created reservation
+ReservationController --> ReservationRoute : 201 Created + data
+ReservationRoute --> Server : response
+Server --> Client : JSON reservation data
+
+== 3) Add review for a restaurant ==
+Client -> Server : POST /api/v1/restaurants/{restaurantId}/reviews\nAuthorization: Bearer <token>
+Server -> ReviewRoute : forward request
+ReviewRoute -> AuthMiddleware : protect()
+AuthMiddleware -> UserModel : validate token / load user
+UserModel -> DB : find user
+DB --> UserModel : user document
+UserModel --> AuthMiddleware : authenticated user
+AuthMiddleware --> ReviewRoute : req.user attached
+ReviewRoute -> ReviewController : addReview()
+ReviewController -> RestaurantModel : findById(restaurantId)
+RestaurantModel -> DB : query restaurant
+DB --> RestaurantModel : restaurant document
+RestaurantModel --> ReviewController : restaurant found
+ReviewController -> ReviewModel : create(reviewData)
+ReviewModel -> DB : insert review
+DB --> ReviewModel : review document
+ReviewModel --> ReviewController : created review
+ReviewController --> ReviewRoute : 201 Created + data
+ReviewRoute --> Server : response
+Server --> Client : JSON review data
+
+@enduml
