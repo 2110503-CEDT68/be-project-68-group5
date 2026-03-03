@@ -1,0 +1,42 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor Customer
+actor Admin
+
+rectangle "Restaurant Management System" {
+  usecase "Register" as UC_Register
+  usecase "Login" as UC_Login
+  usecase "Browse Restaurants" as UC_Browse
+  usecase "View Restaurant Details" as UC_ViewDetails
+  usecase "Make Reservation" as UC_Reserve
+  usecase "View My Reservations" as UC_ViewReservations
+  usecase "Cancel Reservation" as UC_Cancel
+  usecase "Write Review" as UC_Review
+  usecase "Manage Restaurants" as UC_ManageRestaurants
+  usecase "Manage Reservations" as UC_ManageReservations
+  usecase "Manage Reviews" as UC_ManageReviews
+}
+
+Customer --> UC_Register
+Customer --> UC_Login
+Customer --> UC_Browse
+Customer --> UC_ViewDetails
+Customer --> UC_Reserve
+Customer --> UC_ViewReservations
+Customer --> UC_Cancel
+Customer --> UC_Review
+
+Admin --> UC_Login
+Admin --> UC_ManageRestaurants
+Admin --> UC_ManageReservations
+Admin --> UC_ManageReviews
+
+UC_Reserve .> UC_Login : <<include>>
+UC_ViewReservations .> UC_Login : <<include>>
+UC_Cancel .> UC_Login : <<include>>
+UC_Review .> UC_Login : <<include>>
+UC_ViewDetails .> UC_Browse : <<extend>>
+@enduml

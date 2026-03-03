@@ -1,0 +1,196 @@
+@startuml
+left to right direction
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam linetype ortho
+hide empty members
+
+class Server {
+  +mount auth routes
+  +mount reservation routes
+  +mount restaurant routes
+  +mount review routes
+}
+
+class AuthRoute {
+  +POST /api/v1/auth/register
+  +POST /api/v1/auth/login
+  +GET /api/v1/auth/me
+  +GET /api/v1/auth/logout
+}
+
+class ReservationRoute {
+  +GET /api/v1/reservations
+  +GET /api/v1/reservations/{id}
+  +POST /api/v1/restaurants/{restaurantId}/reservations
+  +PUT /api/v1/reservations/{id}
+  +DELETE /api/v1/reservations/{id}
+}
+
+class RestaurantRoute {
+  +GET /api/v1/restaurants
+  +GET /api/v1/restaurants/{id}
+  +POST /api/v1/restaurants
+  +PUT /api/v1/restaurants/{id}
+  +DELETE /api/v1/restaurants/{id}
+}
+
+class ReviewRoute {
+  +GET /api/v1/reviews
+  +GET /api/v1/reviews/{id}
+  +POST /api/v1/restaurants/{restaurantId}/reviews
+  +PUT /api/v1/reviews/{id}
+  +DELETE /api/v1/reviews/{id}
+}
+
+class AuthController {
+  +register()
+  +login()
+  +getMe()
+  +logout()
+}
+
+class ReservationController {
+  +getReservations()
+  +getReservation()
+  +addReservation()
+  +updateReservation()
+  +deleteReservation()
+}
+
+class RestaurantController {
+  +getRestaurants()
+  +getRestaurant()
+  +createRestaurant()
+  +updateRestaurant()
+  +deleteRestaurant()
+}
+
+class ReviewController {
+  +getReviews()
+  +getReview()
+  +addReview()
+  +updateReview()
+  +deleteReview()
+}
+
+class User {
+  +_id
+  +name
+  +email
+  +role
+}
+
+class Restaurant {
+  +_id
+  +name
+  +address
+  +tel
+}
+
+class Reservation {
+  +_id
+  +resDate
+  +user
+  +restaurant
+}
+
+class Review {
+  +_id
+  +title
+  +rating
+  +user
+  +restaurant
+}
+
+class AuthMiddleware {
+  +protect()
+  +authorize(...roles)
+}
+
+class Database {
+  +connectDB()
+}
+note bottom of Database
+Model relationship summary:
+- User makes many Reservations
+- Restaurant has many Reservations
+- User writes many Reviews
+- Restaurant has many Reviews
+- Each Reservation belongs to exactly one User and one Restaurant
+- Each Review belongs to exactly one User and one Restaurant
+end note
+
+Server --> AuthRoute : uses
+Server --> ReservationRoute : uses
+Server --> RestaurantRoute : uses
+Server --> ReviewRoute : uses
+
+AuthRoute --> AuthController : maps requests to
+ReservationRoute --> ReservationController : maps requests to
+RestaurantRoute --> RestaurantController : maps requests to
+ReviewRoute --> ReviewController : maps requests to
+
+AuthRoute --> AuthMiddleware : protect / me
+ReservationRoute --> AuthMiddleware : protect routes
+ReviewRoute --> AuthMiddleware : protect write routes
+RestaurantRoute --> AuthMiddleware : protect admin routes
+
+AuthController --> User
+ReservationController --> Reservation
+ReservationController --> User
+ReservationController --> Restaurant
+RestaurantController --> Restaurant
+ReviewController --> Review
+ReviewController --> User
+ReviewController --> Restaurant
+
+Database --> User
+Database --> Reservation
+Database --> Restaurant
+Database --> Review
+
+User "1" --> "0..*" Reservation : makes
+Restaurant "1" --> "0..*" Reservation : receives
+User "1" --> "0..*" Review : writes
+Restaurant "1" --> "0..*" Review : has
+Reservation "0..*" --> "1" User : belongs to
+Reservation "0..*" --> "1" Restaurant : for
+Review "0..*" --> "1" User : authored by
+Review "0..*" --> "1" Restaurant : about
+
+note right of AuthController
+Routes handled:
+- POST /api/v1/auth/register -> register()
+- POST /api/v1/auth/login -> login()
+- GET /api/v1/auth/me -> getMe()
+- GET /api/v1/auth/logout -> logout()
+end note
+
+note right of ReservationController
+Routes handled:
+- GET /api/v1/reservations -> getReservations()
+- GET /api/v1/reservations/{id} -> getReservation()
+- POST /api/v1/restaurants/{restaurantId}/reservations -> addReservation()
+- PUT /api/v1/reservations/{id} -> updateReservation()
+- DELETE /api/v1/reservations/{id} -> deleteReservation()
+end note
+
+note right of RestaurantController
+Routes handled:
+- GET /api/v1/restaurants -> getRestaurants()
+- GET /api/v1/restaurants/{id} -> getRestaurant()
+- POST /api/v1/restaurants -> createRestaurant()
+- PUT /api/v1/restaurants/{id} -> updateRestaurant()
+- DELETE /api/v1/restaurants/{id} -> deleteRestaurant()
+end note
+
+note right of ReviewController
+Routes handled:
+- GET /api/v1/reviews -> getReviews()
+- GET /api/v1/reviews/{id} -> getReview()
+- POST /api/v1/restaurants/{restaurantId}/reviews -> addReview()
+- PUT /api/v1/reviews/{id} -> updateReview()
+- DELETE /api/v1/reviews/{id} -> deleteReview()
+end note
+@enduml
